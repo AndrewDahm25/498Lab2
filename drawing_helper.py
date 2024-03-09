@@ -1,5 +1,4 @@
 import numpy as np
-import PyKDL as kdl
 from mpl_toolkits.mplot3d import Axes3D
 
 import general_utility as general
@@ -79,14 +78,6 @@ class FrameDrawing(object):
     self._y_vect = rotation_matrix @ self.Y_UNIT
     self._z_vect = rotation_matrix @ self.Z_UNIT
 
-  def update_rotation_kdl(self, rotation_matrix: kdl.Rotation):
-    """Update the rotation matrix of the frame with a kdl Rotation matrix
-
-    Args:
-        rotation_matrix (kdl.Rotation): kdl rotation matrix to use to update
-    """
-    rotation_np = general.kdl_rotation_to_np(rotation_matrix)
-    self.update_rotation(rotation_np)
 
   def update_frame(self, transform_matrix: np.ndarray):
     """update the rotation and translation using a frame
@@ -181,8 +172,6 @@ class LinkDrawing(object):
 
     self._frame_1 = np.eye(4)
     self._frame_2 = np.eye(4)
-    self._frame_1_kdl = general.np_frame_to_kdl(self._frame_1)
-    self._frame_2_kdl = general.np_frame_to_kdl(self._frame_2)
 
   def update_frames(self, frame_1: np.ndarray, frame_2: np.ndarray):
     """Update the starting and ending frame of the link
@@ -196,31 +185,29 @@ class LinkDrawing(object):
 
     self._frame_1 = frame_1
     self._frame_2 = frame_2
-    self._frame_1_kdl = general.np_frame_to_kdl(self._frame_1)
-    self._frame_2_kdl = general.np_frame_to_kdl(self._frame_2)
 
   def draw(self):
     """Draw the line from start to end """
     (self._line_artist, ) = self._ax.plot(
-        [self._frame_1_kdl.p.x(),
-         self._frame_2_kdl.p.x()],
-        [self._frame_1_kdl.p.y(),
-         self._frame_2_kdl.p.y()],
-        [self._frame_1_kdl.p.z(),
-         self._frame_2_kdl.p.z()],
+        [self._frame_1[0,3],
+         self._frame_2[0,3]],
+        [self._frame_1[1,3],
+         self._frame_2[1,3]],
+        [self._frame_1[2,3],
+         self._frame_2[2,3]],
         color='b' if self._color is None else self._color)
 
   def _update_drawing(self):
     """Update the artist with the internal data"""
     self._line_artist.set_xdata(
-        [self._frame_1_kdl.p.x(),
-         self._frame_2_kdl.p.x()])
+        [self._frame_1[0,3],
+         self._frame_2[0,3]])
     self._line_artist.set_ydata(
-        [self._frame_1_kdl.p.y(),
-         self._frame_2_kdl.p.y()])
+        [self._frame_1[1,3],
+         self._frame_2[1,3]])
     self._line_artist.set_3d_properties(
-        [self._frame_1_kdl.p.z(),
-         self._frame_2_kdl.p.z()])
+        [self._frame_1[2,3],
+         self._frame_2[2,3]])
 
   def redraw(self):
     """Redraw the existing artist """

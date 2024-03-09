@@ -1,7 +1,84 @@
 import numpy as np
 import math
-import PyKDL as kdl
 import yaml
+
+
+def rollr(roll: float) -> np.ndarray:
+  """Create an X Rotation matrix
+
+  Args:
+      roll (float): radian value to rotate around x
+
+  Returns:
+      np.ndarray: 3x3 numpy array of rotation matrix
+  """
+  return np.array([[1, 0, 0], [0, math.cos(roll), -math.sin(roll)],
+                  [0, math.sin(roll), math.cos(roll)]])
+
+def rollT(roll: float) -> np.ndarray:
+  """Create a transformation matrix with a roll about X
+
+  Args:
+      roll (float): radian value to rotate around x
+
+  Returns:
+      np.ndarray: 4x4 numpy array of transformation matrix with X roll
+  """
+  result = np.eye(4)
+  result[:3, :3] = rollr(roll)
+  return result
+
+
+def pitchr(pitch: float) -> np.ndarray:
+  """Create a Y rotation matrix
+
+  Args:
+      pitch (float): radian value to rotate around Y 
+
+  Returns:
+      np.ndarray: 3x3 numpy array of rotation matrix about Y 
+  """
+  return np.array([[math.cos(pitch), 0, math.sin(pitch)], [0, 1, 0],
+                  [-math.sin(pitch), 0, math.cos(pitch)]])
+
+def pitchT(pitch: float) -> np.ndarray:
+  """Create a transformation matrix with a pitch about Y 
+
+  Args:
+      pitch (float): radian value to pitch around Y 
+
+  Returns:
+      np.ndarray: 4x4 numpy array of transformation matrix with Y pitch 
+  """
+  result = np.eye(4) 
+  result[:3, :3] = pitchr(pitch)
+  return result
+
+
+def yawr(yaw: float) -> np.ndarray:
+  """Create a rotation matrix with a yaw about Z
+
+  Args:
+      yaw (float): radian value to rotate around Z
+
+  Returns:
+      np.ndarray: 3x3 numpy array of rotation matrix with Z yaw 
+  """
+  return np.array([[math.cos(yaw), -math.sin(yaw), 0],
+                  [math.sin(yaw), math.cos(yaw), 0], [0, 0, 1]])
+
+def yawT(yaw: float) -> np.ndarray:
+  """Create a transformation matrix with a yaw about Z
+
+  Args:
+      yaw (float): radian value to rotate around the Z axis 
+
+  Returns:
+      np.ndarray: 4x4 numpy array of transformation matrix with a Z yaw 
+  """
+  result = np.eye(4)
+  result[:3, :3] = yawr(yaw) 
+  return result 
 
 
 def check_proper_numpy_format(value: np.ndarray, shape: tuple) -> bool:
@@ -22,77 +99,6 @@ def check_proper_numpy_format(value: np.ndarray, shape: tuple) -> bool:
 
   return True
 
-
-def np_frame_to_kdl(np_frame: np.ndarray) -> kdl.Frame:
-  """Turn a numpy 4x4 array into a KDL frame 
-  NOTE: It does NOT check that the 4x4 array is a proper transformation
-
-  Args:
-      np_frame (np.ndarray): Input numpy array of shape 4x4
-
-  Returns:
-      kdl.Frame: KDL version of that transformation
-  """
-
-  if not check_proper_numpy_format(np_frame, (4, 4)):
-    raise TypeError("Incorret type or size to translate into a KDL Frame")
-
-  kdl_frame = kdl.Frame()
-  for i in range(3):
-    for j in range(3):
-      kdl_frame.M[i, j] = np_frame[i, j]
-    kdl_frame.p[i] = np_frame[i, 3]
-
-  return kdl_frame
-
-
-def kdl_rotation_to_np(rotation: kdl.Rotation) -> np.ndarray:
-  """Convert a KDL rotation to a 3x3 numpy aray 
-
-  Args:
-      rotation (kdl.Rotation): KDL Rotation to convert 
-
-  Raises:
-      TypeError: if an invalid type is sent in as input
-
-  Returns:
-      np.ndarray: numpy array shape 3x3
-  """
-  if not isinstance(rotation, kdl.Rotation):
-    raise TypeError("Must send in a rotation")
-
-  np_matrix = np.eye(3)
-  np_matrix[0:3, 0] = [value for value in rotation.UnitX()]
-  np_matrix[0:3, 1] = [value for value in rotation.UnitY()]
-  np_matrix[0:3, 2] = [value for value in rotation.UnitZ()]
-
-  return np_matrix
-
-
-def kdl_frame_to_np(frame: kdl.Frame) -> np.ndarray:
-  """Convert a KDL frame to numpy frame
-
-  Args:
-      frame (kdl.Frame): Frame to convert to numpy
-
-  Raises:
-      TypeError: If the wrong type is sent in
-
-  Returns:
-      np.ndarray: 4x4 Transformation matrix in numpy
-  """
-
-  if not isinstance(frame, kdl.Frame):
-    raise TypeError("Must send in KDL Frame")
-
-  translation_vector = np.array([frame.p.x(), frame.p.y(), frame.p.z()])
-
-  np_matrix = np.eye(4)
-
-  np_matrix[0:3, 0:3] = kdl_rotation_to_np(frame.M)
-  np_matrix[:3, 3] = translation_vector
-
-  return np_matrix
 
 
 def get_data_from_yaml(filepath: str) -> dict:

@@ -1,6 +1,5 @@
 import numpy as np
 import math
-import PyKDL as kdl
 from mpl_toolkits.mplot3d import Axes3D
 
 import general_utility as general
@@ -130,13 +129,18 @@ class Brush(object):
     Returns:
         np.ndarray: (4,4) array of the final transformation
     """
-    tool_frame = kdl.Frame()
-    tool_frame.M.DoRotZ(rotation[2])
-    tool_frame = tool_frame * kdl.Frame(kdl.Vector(translation[0], 0, 0))
-    tool_frame.M.DoRotY(rotation[1])
-    tool_frame = tool_frame * kdl.Frame(kdl.Vector(0, 0, translation[2]))
+    tool_frame = np.eye(4) 
+    trans_x = np.eye(4) 
+    trans_x[0,3] = translation[0]
+    trans_z = np.eye(4)
+    trans_z[2,3] = translation[2]
 
-    return general.kdl_frame_to_np(tool_frame)
+    tool_frame = tool_frame @ general.yawT(rotation[2])
+    tool_frame = tool_frame @ trans_x 
+    tool_frame = tool_frame @ general.pitchT(rotation[1])
+    tool_frame = tool_frame @ trans_z
+
+    return tool_frame
 
   def update_tool_frame(self, frame: np.ndarray):
     """Update the base frame for the tool (the robot end effector frame)

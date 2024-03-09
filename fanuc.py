@@ -1,6 +1,5 @@
 import numpy as np
 import math
-import PyKDL as kdl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from typing import Tuple, List
@@ -37,13 +36,12 @@ def make_frame(rotation: np.ndarray, translation: np.ndarray) -> np.ndarray:
   Returns:
       np.ndarray: 4x4 numpy transformation array
   """
-  rot_mat = kdl.Rotation()
-  rot_mat.DoRotZ(rotation[2])
-  rot_mat.DoRotY(rotation[1])
-  rot_mat.DoRotX(rotation[0])
-  frame = kdl.Frame(rot_mat, kdl.Vector(*translation))
-
-  return general.kdl_frame_to_np(frame)
+  frame = np.eye(4)
+  frame = frame @ general.yawT(rotation[2])
+  frame = frame @ general.pitchT(rotation[1])
+  frame = frame @ general.rollT(rotation[0])
+  frame[:3, 3] = translation
+  return frame
 
 
 class Workspace(object):
